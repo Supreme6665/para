@@ -10,11 +10,29 @@
     term: "Concept / term"
   };
 
+  var ORIGIN_LABELS = {
+    exam: {
+      text: "Exam question",
+      title: "This is the exam's original question for this sentence."
+    },
+    adapted: {
+      text: "Adapted from exam",
+      title: "Based on an exam question, but the target, scope or marks have been changed."
+    },
+    created: {
+      text: "Created by me",
+      title: "Written by the app's author from this passage. It is not an exam question."
+    }
+  };
+
   var els = {
     cardView: document.getElementById("cardView"),
     summaryView: document.getElementById("summaryView"),
     emptyView: document.getElementById("emptyView"),
     meta: document.getElementById("meta"),
+    originBadge: document.getElementById("originBadge"),
+    contextBlock: document.getElementById("contextBlock"),
+    context: document.getElementById("context"),
     sentence: document.getElementById("sentence"),
     answerForm: document.getElementById("answerForm"),
     answer: document.getElementById("answer"),
@@ -84,6 +102,15 @@
         "  ·  " + card.marks + (card.marks === 1 ? " mark" : " marks")
       : "";
     els.meta.hidden = !settings.showMeta;
+
+    var origin = ORIGIN_LABELS[card.origin];
+    els.originBadge.textContent = origin ? origin.text : "";
+    els.originBadge.title = origin ? origin.title : "";
+    els.originBadge.className = "origin-badge" + (origin ? " origin-" + card.origin : "");
+    els.originBadge.hidden = !origin;
+
+    els.context.textContent = card.context || "";
+    els.contextBlock.hidden = !card.context;
 
     renderSentence(card.sentence, card.target);
 
@@ -270,7 +297,7 @@
       chip(els.typeOptions, "types", type, TYPE_LABELS[type] || type, settings.types.indexOf(type) !== -1);
     });
 
-    els.storageNote.textContent = root.ParaStorage.isPersistent()
+    els.storageNote.textContent = root.PeridotStorage.isPersistent()
       ? "Progress is saved in this browser. Export a backup if you want to keep it elsewhere."
       : "This browser is blocking storage (often the case on file://). Progress will last for this tab only. Use a local server, or Export before closing.";
   }
@@ -407,7 +434,7 @@
       (streak > 1 ? "  ·  " + streak + " streak" : "");
   }
 
-  root.ParaUI = {
+  root.PeridotUI = {
     els: els,
     TYPE_LABELS: TYPE_LABELS,
     showView: showView,

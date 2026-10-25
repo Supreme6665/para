@@ -10,8 +10,8 @@ require(path.join(ROOT, "js", "synonyms.js"));
 require(path.join(ROOT, "js", "data.js"));
 const { createMatcher } = require(path.join(ROOT, "js", "matcher.js"));
 
-const matcher = createMatcher({ synonymGroups: window.PARA_SYNONYMS.groups });
-const byId = Object.fromEntries(window.PARA_DATA.cards.map((card) => [card.id, card]));
+const matcher = createMatcher({ synonymGroups: window.PERIDOT_SYNONYMS.groups });
+const byId = Object.fromEntries(window.PERIDOT_DATA.cards.map((card) => [card.id, card]));
 
 function grade(id, answer) {
   return matcher.grade(byId[id], answer);

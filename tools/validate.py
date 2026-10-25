@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CARDS = ROOT / "data" / "cards.json"
 
 TYPES = {"vocab", "literal", "figurative", "language", "term"}
+ORIGINS = {"exam", "adapted", "created"}
 REQUIRED = {
     "id": str,
     "word": str,
@@ -23,7 +24,10 @@ REQUIRED = {
     "passage": int,
     "questionNo": int,
     "questionType": str,
+    "origin": str,
     "marks": int,
+    "question": str,
+    "context": str,
     "sentence": str,
     "target": str,
     "modelAnswers": list,
@@ -61,6 +65,7 @@ def main() -> int:
 
         sentence = card.get("sentence", "")
         target = card.get("target", "")
+        context = card.get("context", "")
         if target and sentence:
             count = sentence.count(target)
             if count == 0:
@@ -69,10 +74,16 @@ def main() -> int:
                 fail(errors, f"{cid}: target {target!r} occurs {count} times in sentence")
             if target.lower() not in sentence.lower():
                 fail(errors, f"{cid}: target case mismatch")
+        if sentence and context and sentence not in context:
+            fail(errors, f"{cid}: sentence is not an exact substring of context")
 
         qtype = card.get("questionType", "")
         if qtype not in TYPES:
             fail(errors, f"{cid}: unknown questionType {qtype!r}")
+
+        origin = card.get("origin", "")
+        if origin not in ORIGINS:
+            fail(errors, f"{cid}: unknown origin {origin!r}")
 
         marks = card.get("marks", 0)
         if not 1 <= marks <= 4:
@@ -110,7 +121,7 @@ def main() -> int:
         if len(target.split()) > 6:
             warnings.append(f"{cid}: target is long ({len(target.split())} words)")
 
-        if not re.search(r"[.!?]['\"]?$", sentence.strip()):
+        if not re.search(r"[.!?][\"'”’]?$", sentence.strip()):
             warnings.append(f"{cid}: sentence does not end with punctuation")
 
     # Duplicate target within the same paper is suspicious.

@@ -111,7 +111,7 @@
     };
   }
 
-  root.ParaSRS = {
+  root.PeridotSRS = {
     intervals: INTERVALS,
     todayISO: todayISO,
     addDays: addDays,

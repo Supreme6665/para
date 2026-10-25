@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="description" content="Offline GP Paper 2 paraphrase practice">
-  <title>Paraphrase</title>
+  <meta name="description" content="Peridot — offline GP Paper 2 paraphrase practice">
+  <title>Peridot — GP Paper 2 Paraphrase Practice</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="app">
     <header class="topbar">
-      <div class="brand">PARAPHRASE</div>
+      <div class="brand">PERIDOT</div>
       <div class="progress-wrap" aria-hidden="true">
         <span id="progressText" class="progress-text">1 / 1</span>
         <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
@@ -23,7 +23,14 @@
 
     <main class="stage">
       <section id="cardView" class="card-view" aria-live="polite">
-        <p id="meta" class="meta"></p>
+        <div class="meta-row">
+          <p id="meta" class="meta"></p>
+          <span id="originBadge" class="origin-badge" hidden></span>
+        </div>
+        <div id="contextBlock" class="context-block" hidden>
+          <p class="context-label">Passage context</p>
+          <p id="context" class="context"></p>
+        </div>
         <p id="sentence" class="sentence"></p>
 
         <form id="answerForm" class="answer-box" autocomplete="off" novalidate>

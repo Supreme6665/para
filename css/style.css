@@ -142,6 +142,13 @@ body {
   gap: 18px;
 }
 
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .meta {
   margin: 0;
   min-height: 1em;
@@ -149,6 +156,57 @@ body {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--faint);
+}
+
+.origin-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: help;
+}
+
+.origin-badge.origin-exam {
+  color: #a9c3da;
+  border-color: #334656;
+}
+
+.origin-badge.origin-adapted {
+  color: #dfc080;
+  border-color: #4d4230;
+}
+
+.origin-badge.origin-created {
+  color: #c0acdf;
+  border-color: #443a55;
+}
+
+.context-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 14px;
+  border-left: 2px solid #2c2c2c;
+}
+
+.context-label {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.context {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.65;
+  color: #989898;
 }
 
 .sentence {
@@ -835,6 +893,10 @@ select {
 
   .sentence {
     font-size: 1.18rem;
+  }
+
+  .context {
+    font-size: 0.82rem;
   }
 
   .field-row {

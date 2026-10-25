@@ -2,7 +2,8 @@
 (function (root) {
   "use strict";
 
-  var KEY = "para.v1";
+  var KEY = "peridot.v1";
+  var LEGACY_KEY = "para.v1";
 
   var DEFAULTS = {
     version: 1,
@@ -30,7 +31,7 @@
   var persistent = true;
 
   try {
-    var probe = "__para_probe__";
+    var probe = "__peridot_probe__";
     root.localStorage.setItem(probe, "1");
     root.localStorage.removeItem(probe);
   } catch (err) {
@@ -56,13 +57,34 @@
     return out;
   }
 
+  function readRaw() {
+    try {
+      var raw = root.localStorage.getItem(KEY);
+      if (raw !== null) return raw;
+
+      // Carry progress over from the app's earlier "para.v1" key.
+      var legacy = root.localStorage.getItem(LEGACY_KEY);
+      if (legacy === null) return null;
+      try {
+        root.localStorage.setItem(KEY, legacy);
+        root.localStorage.removeItem(LEGACY_KEY);
+      } catch (err) {
+        // Keep reading the old copy even if it cannot be migrated.
+      }
+      return legacy;
+    } catch (err) {
+      persistent = false;
+      return null;
+    }
+  }
+
   function load() {
     if (!persistent) {
       if (!memory) memory = clone(DEFAULTS);
       return clone(memory);
     }
     try {
-      var raw = root.localStorage.getItem(KEY);
+      var raw = readRaw();
       if (!raw) return clone(DEFAULTS);
       return merge(DEFAULTS, JSON.parse(raw));
     } catch (err) {
@@ -87,6 +109,7 @@
     if (persistent) {
       try {
         root.localStorage.removeItem(KEY);
+        root.localStorage.removeItem(LEGACY_KEY);
       } catch (err) {
         persistent = false;
       }
@@ -101,12 +124,12 @@
   function importJSON(text) {
     var parsed = JSON.parse(text);
     if (!parsed || typeof parsed !== "object" || !parsed.progress) {
-      throw new Error("This does not look like a Paraphrase backup.");
+      throw new Error("This does not look like a Peridot backup.");
     }
     return merge(DEFAULTS, parsed);
   }
 
-  root.ParaStorage = {
+  root.PeridotStorage = {
     load: load,
     save: save,
     reset: reset,

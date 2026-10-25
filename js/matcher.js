@@ -1,5 +1,5 @@
 /*
- * ParaMatcher — offline concept-based paraphrase scoring.
+ * PeridotMatcher — offline concept-based paraphrase scoring.
  *
  * A card contains mark-scheme "concepts". Each concept has a list of
  * acceptable paraphrases. The matcher normalises the learner's answer,
@@ -12,7 +12,7 @@
   if (typeof module === "object" && module.exports) {
     module.exports = api;
   } else {
-    root.ParaMatcher = api;
+    root.PeridotMatcher = api;
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";

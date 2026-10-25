@@ -6,7 +6,7 @@ const path = require("node:path");
 
 global.window = {};
 require(path.join(__dirname, "..", "js", "srs.js"));
-const SRS = window.ParaSRS;
+const SRS = window.PeridotSRS;
 
 function card(id, paper, type) {
   return { id, paper, questionType: type };

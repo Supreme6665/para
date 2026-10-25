@@ -36,7 +36,7 @@ fi
 
 URL="http://127.0.0.1:${PORT}/"
 
-echo "Paraphrase is running at ${URL}"
+echo "Peridot is running at ${URL}"
 echo "Press Ctrl+C to stop."
 
 if [ -z "${NO_OPEN:-}" ]; then

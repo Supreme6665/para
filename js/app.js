@@ -2,7 +2,7 @@
 (function (root) {
   "use strict";
 
-  var data = root.PARA_DATA || { cards: [] };
+  var data = root.PERIDOT_DATA || { cards: [] };
   var cards = Array.isArray(data.cards) ? data.cards : [];
   var cardsById = {};
   cards.forEach(function (card) {
@@ -23,14 +23,14 @@
     types.sort();
   }
 
-  var matcher = root.ParaMatcher.createMatcher({
-    synonymGroups: (root.PARA_SYNONYMS && root.PARA_SYNONYMS.groups) || []
+  var matcher = root.PeridotMatcher.createMatcher({
+    synonymGroups: (root.PERIDOT_SYNONYMS && root.PERIDOT_SYNONYMS.groups) || []
   });
 
-  var UI = root.ParaUI;
+  var UI = root.PeridotUI;
   var els = UI.els;
-  var storage = root.ParaStorage;
-  var SRS = root.ParaSRS;
+  var storage = root.PeridotStorage;
+  var SRS = root.PeridotSRS;
 
   var state = storage.load();
   var toastTimer = null;
@@ -355,7 +355,7 @@
     var url = URL.createObjectURL(blob);
     var link = document.createElement("a");
     link.href = url;
-    link.download = "paraphrase-" + today() + ".json";
+    link.download = "peridot-" + today() + ".json";
     document.body.append(link);
     link.click();
     link.remove();

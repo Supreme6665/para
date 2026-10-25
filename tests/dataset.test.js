@@ -19,6 +19,7 @@ const cards = cardsJson.cards;
 const byId = Object.fromEntries(cards.map((card) => [card.id, card]));
 
 const TYPES = new Set(["vocab", "literal", "figurative", "language", "term"]);
+const ORIGINS = new Set(["exam", "adapted", "created"]);
 
 test("dataset has a usable size and spread", () => {
   assert.ok(cards.length >= 100, `expected at least 100 cards, got ${cards.length}`);
@@ -38,7 +39,7 @@ test("card ids are unique", () => {
 
 test("every card has the required shape", () => {
   for (const card of cards) {
-    for (const key of ["id", "word", "paper", "paperShort", "sentence", "target", "note"]) {
+    for (const key of ["id", "word", "paper", "paperShort", "question", "context", "sentence", "target", "note"]) {
       assert.equal(typeof card[key], "string", `${card.id}: ${key} should be a string`);
       assert.ok(card[key].trim().length > 0, `${card.id}: ${key} is empty`);
     }
@@ -46,6 +47,8 @@ test("every card has the required shape", () => {
     assert.ok(Number.isInteger(card.marks), `${card.id}: marks should be an integer`);
     assert.ok(card.marks >= 1 && card.marks <= 4, `${card.id}: marks out of range`);
     assert.ok(TYPES.has(card.questionType), `${card.id}: bad question type`);
+    assert.ok(ORIGINS.has(card.origin), `${card.id}: bad origin`);
+    assert.ok(card.context.includes(card.sentence), `${card.id}: sentence is not in context`);
     assert.ok(Array.isArray(card.modelAnswers) && card.modelAnswers.length > 0, `${card.id}: no model answers`);
     assert.ok(Array.isArray(card.concepts) && card.concepts.length > 0, `${card.id}: no concepts`);
   }
@@ -121,8 +124,8 @@ test("accept phrases do not accidentally trigger their own forbid list", () => {
 });
 
 test("generated browser data is in sync with the JSON sources", () => {
-  assert.deepEqual(window.PARA_DATA.cards, cards);
-  assert.deepEqual(window.PARA_SYNONYMS.groups, synonymsJson.groups);
+  assert.deepEqual(window.PERIDOT_DATA.cards, cards);
+  assert.deepEqual(window.PERIDOT_SYNONYMS.groups, synonymsJson.groups);
 });
 
 test("synonym groups are well formed", () => {

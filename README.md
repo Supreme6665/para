@@ -1,11 +1,15 @@
-# Paraphrase
+# Peridot
 
 An offline practice game for the GP Paper 2 "explain the word/phrase" questions.
 
-A full sentence from a passage is shown with the examined term underlined. You
-type a paraphrase and the app marks it against the paper's answer scheme,
-concept by concept. After the page loads it makes no network requests: no CDN,
-no analytics, no external fonts, no account.
+Peridot shows the surrounding passage paragraph, with the examined sentence and
+target phrase highlighted. You type a paraphrase and the app marks it against
+the paper's answer scheme, concept by concept. Each card is labelled **Exam
+question**, **Adapted from exam** or **Created by me**, so you always know
+whether the question came from the paper or was written for extra practice.
+
+After the page loads it makes no network requests: no CDN, no analytics, no
+external fonts, no account.
 
 ## Quick start (from GitHub)
 
@@ -207,7 +211,7 @@ If you are setting up a fresh copy instead, initialise it and add the remote:
 ```bash
 git init -b main
 git add .
-git commit -m "Add paraphrase practice app"
+git commit -m "Add Peridot GP Paper 2 practice app"
 git remote add origin git@github.com:Supreme6665/para.git
 git push -u origin main
 ```
@@ -266,10 +270,16 @@ Skipping a card records no attempt.
 - The 2026 RI paper and the Paper 1 MCQ practice paper are not carded: the RI
   file is a question paper without a mark scheme, and the MCQ paper is not a
   Paper 2 "explain the word/phrase" paper.
-- Each card keeps the **whole sentence**, the underlined target, the question,
-  model answers, a "why" explanation, and the scheme's do-not-accept notes.
+- Each card keeps the **surrounding passage paragraph**, the whole examined
+  sentence, the underlined target, the question, model answers, a "why"
+  explanation, and the scheme's do-not-accept notes. Every answer is deducible
+  from the text shown on screen.
 - Question types: vocabulary in context, literal comprehension, figurative
   language, use of language, and concept/term questions.
+- Authorship labels: **Exam question** is the paper's original question;
+  **Adapted from exam** starts from an exam question but changes the target,
+  scope or marks; **Created by me** is written from the passage with no matching
+  exam question.
 - Filters for paper, question type and session length, plus three modes:
   practice, due today (spaced repetition) and weak spots.
 
@@ -302,7 +312,8 @@ not as a definitive grade.
 
 ## Progress and backup
 
-Progress is saved to `localStorage` under `para.v1`:
+Progress is saved to `localStorage` under `peridot.v1`. Existing progress saved
+under the old `para.v1` key is migrated automatically on first load:
 
 - Leitner boxes with intervals of 0, 1, 3, 7 and 16 days.
 - A correct answer promotes a card; a full miss resets it; a partial answer
@@ -325,9 +336,10 @@ node --test tests/          # matcher, SRS and dataset checks
 ```
 
 `validate.py` checks that every target occurs exactly once in its sentence,
-that concept weights add up to the marks, and that no ids are duplicated.
-`build.py` must be run after any card or synonym edit, because the browser reads
-the generated files, not the JSON.
+that the sentence appears inside its context paragraph, that `origin` is one of
+`exam` / `adapted` / `created`, that concept weights add up to the marks, and
+that no ids are duplicated. `build.py` must be run after any card or synonym
+edit, because the browser reads the generated files, not the JSON.
 
 To check a card against its source, place your own copies of the PDFs in
 `papers/`, then extract them. The `papers/` folder is local-only and ignored by
@@ -380,8 +392,8 @@ js/ui.js              DOM rendering (feedback, summary, stats)
 js/matcher.js         normalisation, stemming, synonyms, scoring
 js/srs.js             Leitner scheduling and queue building
 js/storage.js         localStorage with in-memory fallback
-js/data.js            generated card data (window.PARA_DATA)
-js/synonyms.js        generated synonym groups (window.PARA_SYNONYMS)
+js/data.js            generated card data (window.PERIDOT_DATA)
+js/synonyms.js        generated synonym groups (window.PERIDOT_SYNONYMS)
 data/cards.json       curated cards — edit this
 data/synonyms.json    curated synonym groups — edit this
 tools/validate.py     dataset checks

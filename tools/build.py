@@ -2,8 +2,8 @@
 """Build browser-ready data files from the curated JSON.
 
 Writes:
-  js/data.js      -> window.PARA_DATA
-  js/synonyms.js  -> window.PARA_SYNONYMS
+  js/data.js      -> window.PERIDOT_DATA
+  js/synonyms.js  -> window.PERIDOT_SYNONYMS
 
 The app uses classic <script> tags so it works from file:// without a
 server. Run after editing data/cards.json.
@@ -37,8 +37,8 @@ def main() -> None:
     cards["types"] = sorted({c["questionType"] for c in cards["cards"]})
     cards["count"] = len(cards["cards"])
 
-    (ROOT / "js" / "data.js").write_text(dump_js("PARA_DATA", cards), encoding="utf-8")
-    (ROOT / "js" / "synonyms.js").write_text(dump_js("PARA_SYNONYMS", synonyms), encoding="utf-8")
+    (ROOT / "js" / "data.js").write_text(dump_js("PERIDOT_DATA", cards), encoding="utf-8")
+    (ROOT / "js" / "synonyms.js").write_text(dump_js("PERIDOT_SYNONYMS", synonyms), encoding="utf-8")
 
     print(f"Built js/data.js with {cards['count']} cards across {len(papers)} papers.")
     print(f"Built js/synonyms.js with {len(synonyms['groups'])} synonym groups.")
