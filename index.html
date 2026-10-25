@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Offline GP Paper 2 paraphrase practice">
+  <title>Paraphrase</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">PARAPHRASE</div>
+      <div class="progress-wrap" aria-hidden="true">
+        <span id="progressText" class="progress-text">1 / 1</span>
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+      </div>
+      <button id="settingsBtn" class="icon-btn" type="button" aria-label="Open settings" title="Settings (Esc)">
+        <span aria-hidden="true">⚙</span>
+      </button>
+    </header>
+
+    <main class="stage">
+      <section id="cardView" class="card-view" aria-live="polite">
+        <p id="meta" class="meta"></p>
+        <p id="sentence" class="sentence"></p>
+
+        <form id="answerForm" class="answer-box" autocomplete="off" novalidate>
+          <label class="sr-only" for="answer">Your paraphrase</label>
+          <textarea id="answer" name="answer" rows="2" spellcheck="true"
+            placeholder="Type your paraphrase…"></textarea>
+          <div class="box-actions">
+            <span id="counter" class="counter">0 words</span>
+            <button id="checkBtn" class="primary" type="submit">Check <kbd>↵</kbd></button>
+          </div>
+        </form>
+
+        <div id="feedback" class="feedback" hidden></div>
+
+        <div id="hints" class="hints">
+          <span><kbd>Enter</kbd> check</span>
+          <span><kbd>Esc</kbd> settings</span>
+          <span><kbd>Alt</kbd>+<kbd>S</kbd> skip</span>
+        </div>
+      </section>
+
+      <section id="emptyView" class="summary" hidden>
+        <p class="eyebrow">NOTHING TO DO</p>
+        <h1 id="emptyTitle">No cards here</h1>
+        <p id="emptyLine" class="summary-line"></p>
+        <div class="summary-actions">
+          <button id="emptyPractice" class="primary" type="button">Start practice</button>
+          <button id="emptySettings" type="button">Settings</button>
+        </div>
+      </section>
+
+      <section id="summaryView" class="summary" hidden>
+        <p class="eyebrow">SESSION COMPLETE</p>
+        <h1 id="summaryScore">0 / 0</h1>
+        <p id="summaryLine" class="summary-line"></p>
+        <div id="summaryMissed" class="summary-missed"></div>
+        <div class="summary-actions">
+          <button id="retryMissed" class="primary" type="button">Retry missed</button>
+          <button id="newSession" type="button">New session</button>
+          <button id="summaryStats" type="button">Stats</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="statusbar">
+      <span id="scoreLine">0 correct · 0 attempted</span>
+      <span id="paperLine">Offline</span>
+    </footer>
+  </div>
+
+  <dialog id="settingsDialog" class="sheet">
+    <form id="settingsForm" method="dialog">
+      <header class="sheet-head">
+        <h2>Settings</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close settings">×</button>
+      </header>
+
+      <div class="sheet-body">
+        <fieldset>
+          <legend>Session</legend>
+          <div class="field-row">
+            <label for="modeSelect">Mode</label>
+            <select id="modeSelect" name="mode">
+              <option value="practice">Practice — shuffled cards</option>
+              <option value="due">Due today — spaced repetition</option>
+              <option value="weak">Weak spots — cards you miss</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <label for="limitSelect">Length</label>
+            <select id="limitSelect" name="limit">
+              <option value="10">10 cards</option>
+              <option value="20" selected>20 cards</option>
+              <option value="30">30 cards</option>
+              <option value="0">All matching cards</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Papers</legend>
+          <div id="paperOptions" class="chips"></div>
+          <p class="field-note">Nothing selected means all papers.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Question types</legend>
+          <div id="typeOptions" class="chips"></div>
+          <p class="field-note">Nothing selected means all types.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Display</legend>
+          <label class="switch"><input type="checkbox" name="showMeta" id="showMeta"> Show paper, type and marks</label>
+          <label class="switch"><input type="checkbox" name="showHints" id="showHints"> Show keyboard hints</label>
+        </fieldset>
+
+        <p id="storageNote" class="field-note"></p>
+      </div>
+
+      <footer class="sheet-foot">
+        <div class="foot-left">
+          <button type="button" id="statsBtn">Stats</button>
+          <button type="button" id="exportBtn">Export</button>
+          <button type="button" id="importBtn">Import</button>
+          <button type="button" id="resetBtn" class="danger">Reset</button>
+        </div>
+        <button type="submit" class="primary" value="apply">Apply</button>
+      </footer>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </form>
+  </dialog>
+
+  <dialog id="statsDialog" class="sheet">
+    <header class="sheet-head">
+      <h2>Progress</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close stats">×</button>
+    </header>
+    <div id="statsBody" class="sheet-body"></div>
+  </dialog>
+
+  <script src="js/synonyms.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/matcher.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/srs.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

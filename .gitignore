@@ -1,0 +1,7 @@
+# Generated and local-only files
+build/
+papers/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
