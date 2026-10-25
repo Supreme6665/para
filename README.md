@@ -300,6 +300,19 @@ best chain, and a review of the words you saw with their missed strong synonyms.
 High score, best chain and rounds played persist; an active round does not
 survive a reload.
 
+**Review mode** is on by default. When a round ends, every word you scored no
+synonyms on is listed with its top three accepted synonyms — the strongest and
+most useful terms to learn. Type each displayed synonym into its box to complete
+the review. **Play again** stays locked until every term is correct, so a quick
+replay cannot skip the words that gave you trouble. Matching ignores case,
+punctuation and simple inflections. Skips and an unanswered final word count as
+missed words.
+
+Turn review mode off in **Settings → Synonym Rush → Review missed words before
+replaying**. The round summary still lists what you missed, but Play again is
+available immediately. Turning it back on restores the requirement for the
+current summary. The preference is saved with your other settings.
+
 ## What is in it
 
 - **106 cards** drawn from the answer schemes of thirteen papers: 2025 ACJC;

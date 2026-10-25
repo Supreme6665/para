@@ -159,6 +159,7 @@ test("explicit reject lists veto misleading answers", () => {
 test("moving to the next word records history and clears the current answer set", () => {
   const round = roundWith("abandon");
   const answer = round.current.tiers.strong[0];
+  const expectedTop = round.current.accepted.slice(0, 3).map((entry) => entry.term);
   engine.submit(round, answer, 1000);
   const next = engine.nextPrompt(round);
   assert.ok(next);
@@ -166,9 +167,52 @@ test("moving to the next word records history and clears the current answer set"
   assert.equal(round.history[0].word, "abandon");
   assert.equal(round.history[0].found[0].term, answer);
   assert.ok(round.history[0].missed.length > 0);
+  assert.deepEqual(round.history[0].top.map((entry) => entry.term), expectedTop);
   assert.equal(round.currentAnswers.length, 0);
   assert.equal(round.wordNo, 2);
   assert.equal(round.score, 10);
+});
+
+test("review queue keeps only words with no accepted synonyms, once each", () => {
+  const top = [
+    { term: "desert", tier: "strong" },
+    { term: "forsake", tier: "strong" },
+    { term: "leave", tier: "close" }
+  ];
+  const summary = {
+    history: [
+      { word: "abandon", found: [], top },
+      { word: "abandon", found: [], top },
+      { word: "important", found: [{ term: "crucial" }], top: [] },
+      { word: "rise", found: [], top: [{ term: "climb", tier: "strong" }] },
+      { word: "cut", found: [] }
+    ]
+  };
+
+  const queue = engine.reviewQueue(summary);
+  assert.deepEqual(queue.map((item) => item.word), ["abandon", "rise", "cut"]);
+  assert.deepEqual(queue[0].top, top);
+  assert.equal(queue[1].top.length, 1);
+  assert.deepEqual(queue[2].top, []);
+
+  assert.deepEqual(engine.reviewQueue(summary, 1).map((item) => item.word), ["abandon"]);
+  assert.deepEqual(engine.reviewQueue(summary, 0), []);
+});
+
+test("an unanswered final word joins the review queue after finishing", () => {
+  const round = roundWith("abandon", 0);
+  engine.submit(round, round.current.tiers.strong[0], 1000);
+  engine.nextPrompt(round);
+  round.current = prompt("important");
+  round.currentAnswers = [];
+  round.currentKeys = new Set();
+  round.recorded = false;
+
+  const summary = engine.finish(round, 20000);
+  const queue = engine.reviewQueue(summary);
+  assert.deepEqual(queue.map((item) => item.word), ["important"]);
+  assert.equal(queue[0].top.length, 3);
+  assert.ok(queue[0].top[0].term);
 });
 
 test("pause freezes the clock and resume restores the remaining time", () => {

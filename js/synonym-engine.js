@@ -412,7 +412,10 @@
       source: round.current.source,
       found: found,
       missed: missed.slice(0, 5),
-      missedCount: missed.length
+      missedCount: missed.length,
+      top: round.current.accepted.slice(0, 3).map(function (entry) {
+        return { term: entry.term, tier: entry.tier };
+      })
     });
     round.recorded = true;
   }
@@ -638,6 +641,33 @@
     return minutes + ":" + (rest < 10 ? "0" : "") + rest;
   }
 
+  // Review mode only asks about words that produced no accepted synonyms.
+  // Duplicate words are collapsed (a word can appear more than once in a long
+  // round), and each item keeps the prompt's first three accepted terms — the
+  // strongest, most useful ones to learn.
+  function reviewQueue(summary, limit) {
+    var history = summary && summary.history ? summary.history : [];
+    var max = limit == null ? Infinity : Math.max(0, Number(limit) || 0);
+    var seen = new Set();
+    var items = [];
+
+    for (var i = 0; i < history.length && items.length < max; i++) {
+      var entry = history[i];
+      if (!entry || (entry.found && entry.found.length)) continue;
+      var key = entry.word ? termKey(entry.word) : "";
+      if (key && seen.has(key)) continue;
+      if (key) seen.add(key);
+      items.push({
+        word: entry.word,
+        key: key,
+        source: entry.source || null,
+        top: (entry.top || []).slice(0, 3)
+      });
+    }
+
+    return items;
+  }
+
   return {
     buildIndex: buildIndex,
     createRound: createRound,
@@ -649,6 +679,7 @@
     finish: finish,
     pointsFor: pointsFor,
     strongRemaining: strongRemaining,
+    reviewQueue: reviewQueue,
     formatTime: formatTime,
     termKey: termKey,
     canonicalTerm: canonicalTerm,

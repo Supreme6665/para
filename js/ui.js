@@ -64,6 +64,7 @@
     modeSelect: document.getElementById("modeSelect"),
     limitSelect: document.getElementById("limitSelect"),
     synonymSecondsSelect: document.getElementById("synonymSecondsSelect"),
+    synonymReview: document.getElementById("synonymReview"),
     showMeta: document.getElementById("showMeta"),
     showHints: document.getElementById("showHints"),
     storageNote: document.getElementById("storageNote"),
@@ -301,6 +302,7 @@
     els.showMeta.checked = !!settings.showMeta;
     els.showHints.checked = !!settings.showHints;
     els.synonymSecondsSelect.value = String(settings.synonymSeconds || 60);
+    els.synonymReview.checked = settings.synonymReview !== false;
 
     els.paperOptions.textContent = "";
     papers.forEach(function (paper) {
@@ -329,7 +331,8 @@
       types: checked("#typeOptions"),
       showMeta: els.showMeta.checked,
       showHints: els.showHints.checked,
-      synonymSeconds: Number(els.synonymSecondsSelect.value) || 60
+      synonymSeconds: Number(els.synonymSecondsSelect.value) || 60,
+      synonymReview: els.synonymReview.checked
     };
   }
 

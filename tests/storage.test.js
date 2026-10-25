@@ -63,6 +63,7 @@ test("defaults include the section and synonym game records", () => {
 
   assert.equal(state.section, "paraphrase");
   assert.equal(state.settings.synonymSeconds, 60);
+  assert.equal(state.settings.synonymReview, true);
   assert.deepEqual(state.synonymGame, {
     highScore: 0,
     bestStreak: 0,
@@ -85,9 +86,24 @@ test("older saved state is merged with new defaults", () => {
   assert.equal(state.settings.mode, "weak");
   assert.equal(state.settings.limit, 10);
   assert.equal(state.settings.synonymSeconds, 60);
+  assert.equal(state.settings.synonymReview, true);
   assert.equal(state.section, "paraphrase");
   assert.equal(state.synonymGame.highScore, 0);
   assert.equal(state.progress["acjc-p1-q1"].attempts, 1);
+});
+
+test("an explicit review-mode preference is preserved", () => {
+  const saved = JSON.stringify({
+    version: 1,
+    settings: { synonymReview: false },
+    progress: {},
+    stats: {}
+  });
+  const storage = loadWith(fakeStorage({ "peridot.v1": saved }));
+  const state = storage.load();
+
+  assert.equal(state.settings.synonymReview, false);
+  assert.equal(state.settings.synonymSeconds, 60);
 });
 
 test("imported backups keep game records and restore defaults for missing fields", () => {
@@ -103,4 +119,5 @@ test("imported backups keep game records and restore defaults for missing fields
   assert.equal(state.synonymGame.highScore, 84);
   assert.equal(state.synonymGame.lastAt, null);
   assert.equal(state.settings.synonymSeconds, 60);
+  assert.equal(state.settings.synonymReview, true);
 });

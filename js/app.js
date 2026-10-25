@@ -672,6 +672,9 @@
     getRecords: function () {
       return state.synonymGame;
     },
+    getReviewMode: function () {
+      return state.settings.synonymReview !== false;
+    },
     onRoundEnd: recordSynonymRound,
     onRequestSection: setSection,
     toast: toast

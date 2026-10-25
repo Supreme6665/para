@@ -156,6 +156,14 @@
           <p id="synonymSummaryLine" class="summary-line"></p>
           <p id="synonymBestBadge" class="origin-badge origin-created" hidden>New personal best</p>
           <div id="synonymSummaryStats" class="stats-grid"></div>
+          <div id="synonymReviewGate" class="review-gate" hidden>
+            <div class="review-gate-head">
+              <p class="eyebrow">REVIEW MODE</p>
+              <h2>Type the synonyms you missed.</h2>
+              <p id="synonymReviewProgress" class="review-gate-progress" aria-live="polite"></p>
+            </div>
+            <div id="synonymReviewItems" class="review-gate-items"></div>
+          </div>
           <div id="synonymReview" class="synonym-review"></div>
           <div class="summary-actions">
             <button id="synonymAgainBtn" class="primary" type="button">Play again</button>
@@ -223,6 +231,8 @@
               <option value="90">90 seconds</option>
             </select>
           </div>
+          <label class="switch"><input type="checkbox" name="synonymReview" id="synonymReview"> Review missed words before replaying</label>
+          <p class="field-note">Review mode shows the top three synonyms for every word you scored nothing on, and asks you to type them before Play again unlocks.</p>
           <p class="field-note">Synonym Rush uses words from every passage. High score, best streak and rounds persist in this browser.</p>
         </fieldset>
 

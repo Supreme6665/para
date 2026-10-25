@@ -15,7 +15,8 @@
       limit: 20,
       showMeta: true,
       showHints: true,
-      synonymSeconds: 60
+      synonymSeconds: 60,
+      synonymReview: true
     },
     progress: {},
     stats: {

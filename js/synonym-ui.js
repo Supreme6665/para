@@ -10,6 +10,8 @@
   var timer = null;
   var roundReported = false;
   var lastReport = null;
+  var review = null;
+  var reviewCompleteNotified = false;
 
   function byId(id) {
     return document.getElementById(id);
@@ -30,6 +32,72 @@
 
   function getRecords() {
     return (options.getRecords && options.getRecords()) || {};
+  }
+
+  function getReviewMode() {
+    return options.getReviewMode ? !!options.getReviewMode() : true;
+  }
+
+  function ensureReview(summary) {
+    if (!summary) return null;
+    if (!review || review.summary !== summary) {
+      review = {
+        summary: summary,
+        items: engine.reviewQueue(summary).map(function (item) {
+          return {
+            word: item.word,
+            source: item.source,
+            terms: item.top.map(function (entry) {
+              return { term: entry.term, tier: entry.tier, value: "" };
+            })
+          };
+        })
+      };
+      reviewCompleteNotified = false;
+    }
+    return review;
+  }
+
+  function termDone(value, term) {
+    var typed = engine.termKey(value);
+    return !!typed && typed === engine.termKey(term);
+  }
+
+  function reviewStats() {
+    var stats = { words: 0, wordsDone: 0, terms: 0, termsDone: 0 };
+    if (!review) return stats;
+    review.items.forEach(function (item) {
+      var all = true;
+      item.terms.forEach(function (entry) {
+        stats.terms += 1;
+        if (termDone(entry.value, entry.term)) {
+          stats.termsDone += 1;
+        } else {
+          all = false;
+        }
+      });
+      stats.words += 1;
+      if (all) stats.wordsDone += 1;
+    });
+    return stats;
+  }
+
+  function reviewPending() {
+    if (!getReviewMode()) return false;
+    if (!round || round.status !== "over" || !round.summary) return false;
+    if (!review || review.summary !== round.summary || !review.items.length) return false;
+    var stats = reviewStats();
+    return stats.termsDone < stats.terms;
+  }
+
+  function focusFirstReviewInput() {
+    if (!els.reviewItems) return;
+    var input = els.reviewItems.querySelector(".review-answer-row:not(.is-done) .review-answer-input");
+    if (!input) return;
+    input.focus();
+    if (typeof input.scrollIntoView === "function") {
+      input.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
   }
 
   function notify(message) {
@@ -123,6 +191,117 @@
     renderHud();
   }
 
+  function renderReviewGate(summary) {
+    if (!els.reviewGate) return;
+    var current = ensureReview(summary);
+    els.reviewItems.textContent = "";
+
+    if (!getReviewMode() || !current || !current.items.length) {
+      els.reviewGate.hidden = true;
+      refreshReviewProgress();
+      return;
+    }
+
+    els.reviewGate.hidden = false;
+    current.items.forEach(function (item) {
+      els.reviewItems.append(reviewGateItem(item));
+    });
+    refreshReviewProgress();
+  }
+
+  function reviewGateItem(item) {
+    var card = el("div", "review-gate-item");
+    var head = el("div", "review-gate-head");
+    head.append(el("b", null, item.word));
+    var papers = item.source && item.source.papers ? item.source.papers : [];
+    if (papers.length) head.append(el("span", "review-gate-source", papers.join(" · ")));
+    card.append(head);
+
+    if (item.source && item.source.example) {
+      card.append(el("p", "review-gate-example", item.source.example));
+    }
+
+    if (!item.terms.length) {
+      card.append(el("p", "review-gate-note", "No review terms were recorded for this word."));
+      return card;
+    }
+
+    item.terms.forEach(function (entry, index) {
+      var row = el("label", "review-answer-row tier-" + entry.tier);
+      var term = el("span", "review-answer-term");
+      term.append(el("span", "review-answer-index", String(index + 1)));
+      term.append(document.createTextNode(entry.term));
+      row.append(term);
+
+      var input = document.createElement("input");
+      input.type = "text";
+      input.className = "review-answer-input";
+      input.autocomplete = "off";
+      input.autocapitalize = "none";
+      input.spellcheck = false;
+      input.value = entry.value;
+      input.placeholder = "Type it here";
+      input.dataset.term = entry.term;
+      input.setAttribute("aria-label", "Type the synonym " + entry.term + " for " + item.word);
+      row.append(input);
+
+      var state = el("span", "review-answer-state", "");
+      row.append(state);
+
+      function refresh() {
+        entry.value = input.value;
+        var done = termDone(entry.value, entry.term);
+        row.classList.toggle("is-done", done);
+        state.textContent = done ? "✓" : "";
+        refreshReviewProgress();
+      }
+
+      input.addEventListener("input", refresh);
+      if (termDone(entry.value, entry.term)) {
+        row.classList.add("is-done");
+        state.textContent = "✓";
+      }
+      card.append(row);
+    });
+
+    return card;
+  }
+
+  function refreshReviewProgress() {
+    var stats = reviewStats();
+    var visible = getReviewMode() && review && review.items.length > 0 &&
+      els.reviewGate && !els.reviewGate.hidden;
+    var pending = visible && stats.termsDone < stats.terms;
+
+    if (els.againBtn) {
+      els.againBtn.disabled = pending;
+      if (pending) els.againBtn.title = "Finish review mode to play again.";
+      else els.againBtn.removeAttribute("title");
+    }
+
+    if (!els.reviewProgress) return;
+    if (!visible) {
+      els.reviewProgress.textContent = "";
+      return;
+    }
+    if (!pending) {
+      els.reviewProgress.textContent = "Review complete — " +
+        stats.words + (stats.words === 1 ? " word" : " words") +
+        " reviewed. Play again is unlocked.";
+      if (!reviewCompleteNotified) {
+        reviewCompleteNotified = true;
+        notify("Review complete — Play again is unlocked.");
+      }
+      return;
+    }
+
+    reviewCompleteNotified = false;
+    els.reviewProgress.textContent = stats.wordsDone + " of " + stats.words +
+      (stats.words === 1 ? " word" : " words") + " reviewed · " +
+      stats.termsDone + " of " + stats.terms +
+      " synonyms typed. Play again unlocks when all are correct.";
+  }
+
   function renderSummary(summary, report) {
     setView("summary");
     if (!summary) return;
@@ -155,6 +334,8 @@
       box.append(el("span", null, pair[1]));
       els.summaryStats.append(box);
     });
+
+    renderReviewGate(summary);
 
     els.review.textContent = "";
     if (!summary.history.length) {
@@ -236,6 +417,11 @@
   // ---- actions -----------------------------------------------------------
 
   function startRound() {
+    if (reviewPending()) {
+      notify("Finish review mode first — type each synonym to unlock another round.");
+      focusFirstReviewInput();
+      return;
+    }
     if (!options.index || !options.index.prompts || !options.index.prompts.length) {
       notify("The synonym bank is empty.");
       return;
@@ -247,6 +433,8 @@
     });
     roundReported = false;
     lastReport = null;
+    review = null;
+    reviewCompleteNotified = false;
     if (!round) {
       notify("Could not start a synonym round.");
       renderIntro();
@@ -375,6 +563,10 @@
     var seconds = getSeconds();
     els.ruleTime.textContent = seconds + " sec";
     if (els.startBtn) els.startBtn.textContent = "Start " + seconds + "-second round";
+    if (round && round.status === "over" && round.summary &&
+        els.summary && !els.summary.hidden) {
+      renderSummary(round.summary, lastReport);
+    }
   }
 
   function reset() {
@@ -382,6 +574,8 @@
     round = null;
     roundReported = false;
     lastReport = null;
+    review = null;
+    reviewCompleteNotified = false;
     if (!els.view.hidden) renderIntro();
   }
 
@@ -447,6 +641,9 @@
       summaryLine: byId("synonymSummaryLine"),
       bestBadge: byId("synonymBestBadge"),
       summaryStats: byId("synonymSummaryStats"),
+      reviewGate: byId("synonymReviewGate"),
+      reviewItems: byId("synonymReviewItems"),
+      reviewProgress: byId("synonymReviewProgress"),
       review: byId("synonymReview")
     };
 
