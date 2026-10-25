@@ -42,6 +42,9 @@
     hints: document.getElementById("hints"),
     progressText: document.getElementById("progressText"),
     progressBar: document.getElementById("progressBar"),
+    progressWrap: document.getElementById("progressWrap"),
+    modeCards: document.getElementById("modeCards"),
+    modeSynonyms: document.getElementById("modeSynonyms"),
     scoreLine: document.getElementById("scoreLine"),
     paperLine: document.getElementById("paperLine"),
     summaryScore: document.getElementById("summaryScore"),
@@ -60,6 +63,7 @@
     typeOptions: document.getElementById("typeOptions"),
     modeSelect: document.getElementById("modeSelect"),
     limitSelect: document.getElementById("limitSelect"),
+    synonymSecondsSelect: document.getElementById("synonymSecondsSelect"),
     showMeta: document.getElementById("showMeta"),
     showHints: document.getElementById("showHints"),
     storageNote: document.getElementById("storageNote"),
@@ -78,6 +82,16 @@
     els.cardView.hidden = name !== "card";
     els.summaryView.hidden = name !== "summary";
     els.emptyView.hidden = name !== "empty";
+  }
+
+  function setSection(section) {
+    var synonyms = section === "synonyms";
+    els.modeCards.classList.toggle("is-active", !synonyms);
+    els.modeSynonyms.classList.toggle("is-active", synonyms);
+    els.modeCards.setAttribute("aria-pressed", String(!synonyms));
+    els.modeSynonyms.setAttribute("aria-pressed", String(synonyms));
+    els.progressWrap.hidden = synonyms;
+    document.body.dataset.section = synonyms ? "synonyms" : "paraphrase";
   }
 
   function renderSentence(sentence, target) {
@@ -286,6 +300,7 @@
     els.limitSelect.value = String(settings.limit);
     els.showMeta.checked = !!settings.showMeta;
     els.showHints.checked = !!settings.showHints;
+    els.synonymSecondsSelect.value = String(settings.synonymSeconds || 60);
 
     els.paperOptions.textContent = "";
     papers.forEach(function (paper) {
@@ -313,7 +328,8 @@
       papers: checked("#paperOptions"),
       types: checked("#typeOptions"),
       showMeta: els.showMeta.checked,
-      showHints: els.showHints.checked
+      showHints: els.showHints.checked,
+      synonymSeconds: Number(els.synonymSecondsSelect.value) || 60
     };
   }
 
@@ -362,6 +378,22 @@
       grid.append(box);
     });
     body.append(grid);
+
+    var game = state.synonymGame || {};
+    body.append(el("h3", null, "Synonym Rush"));
+    var gameGrid = el("div", "stats-grid");
+    [
+      [game.highScore || 0, "high score"],
+      [game.bestStreak || 0, "best chain"],
+      [game.rounds || 0, "rounds played"],
+      [game.lastScore || 0, "last score"]
+    ].forEach(function (pair) {
+      var box = el("div", "stat");
+      box.append(el("b", null, String(pair[0])));
+      box.append(el("span", null, pair[1]));
+      gameGrid.append(box);
+    });
+    body.append(gameGrid);
 
     if (!attempts) {
       body.append(el("p", "stats-empty", "No attempts yet. Finish a few cards and your accuracy will appear here."));
@@ -426,7 +458,15 @@
     }
   }
 
-  function updateStatus(state) {
+  function updateStatus(state, section) {
+    if (section === "synonyms") {
+      var game = state.synonymGame || {};
+      var rounds = game.rounds || 0;
+      els.scoreLine.textContent = "Best " + (game.highScore || 0) + " points  ·  " +
+        rounds + (rounds === 1 ? " round" : " rounds") + " played";
+      els.paperLine.textContent = "Synonym Rush  ·  Offline";
+      return;
+    }
     var attempts = state.stats.attempts || 0;
     var correct = state.stats.correct || 0;
     var streak = state.stats.streak || 0;
@@ -438,6 +478,7 @@
     els: els,
     TYPE_LABELS: TYPE_LABELS,
     showView: showView,
+    setSection: setSection,
     renderCard: renderCard,
     renderFeedback: renderFeedback,
     renderSummary: renderSummary,

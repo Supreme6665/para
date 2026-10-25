@@ -27,13 +27,23 @@
     synonymGroups: (root.PERIDOT_SYNONYMS && root.PERIDOT_SYNONYMS.groups) || []
   });
 
+  var synonymGroups = (root.PERIDOT_SYNONYMS && root.PERIDOT_SYNONYMS.groups) || [];
+  var synonymConfig = root.PERIDOT_SYNONYM_GAME || {};
+  var synonymIndex = root.PeridotSynonymEngine.buildIndex({
+    cards: cards,
+    groups: synonymGroups,
+    config: synonymConfig
+  });
+
   var UI = root.PeridotUI;
   var els = UI.els;
   var storage = root.PeridotStorage;
   var SRS = root.PeridotSRS;
+  var SynonymUI = root.PeridotSynonymUI;
 
   var state = storage.load();
   var toastTimer = null;
+  var paraphraseDraft = null;
 
   // ---- small helpers -----------------------------------------------------
 
@@ -43,7 +53,75 @@
 
   function save() {
     storage.save(state);
-    UI.updateStatus(state);
+    UI.updateStatus(state, state.section);
+  }
+
+  function normalizeSection(section) {
+    return section === "synonyms" ? "synonyms" : "paraphrase";
+  }
+
+  function captureParaphraseDraft() {
+    paraphraseDraft = null;
+    var session = state.session;
+    var card = currentCard();
+    if (!session || !card || session.pending || isFinished(session)) return;
+    var text = els.answer.value;
+    if (text && text.trim()) paraphraseDraft = { id: card.id, text: text };
+  }
+
+  function restoreParaphraseDraft() {
+    if (!paraphraseDraft) return;
+    var session = state.session;
+    var card = currentCard();
+    if (session && !session.pending && card && card.id === paraphraseDraft.id) {
+      els.answer.value = paraphraseDraft.text;
+      updateCounter();
+      UI.resizeAnswer();
+    }
+    paraphraseDraft = null;
+  }
+
+  function setSection(section) {
+    section = normalizeSection(section);
+    if (state.section === "paraphrase" && section === "synonyms") {
+      captureParaphraseDraft();
+    }
+    state.section = section;
+    if (section === "paraphrase") {
+      els.paperLine.textContent = "Offline";
+    }
+    UI.setSection(section);
+    save();
+    if (section === "synonyms") {
+      UI.showView("none");
+      SynonymUI.show();
+    } else {
+      SynonymUI.hide();
+      resume();
+      restoreParaphraseDraft();
+    }
+  }
+
+  function recordSynonymRound(summary) {
+    var game = state.synonymGame || (state.synonymGame = {
+      highScore: 0,
+      bestStreak: 0,
+      rounds: 0,
+      lastScore: 0,
+      lastAt: null
+    });
+    var isBest = summary.score > (game.highScore || 0);
+    game.rounds = (game.rounds || 0) + 1;
+    game.lastScore = summary.score;
+    game.highScore = Math.max(game.highScore || 0, summary.score);
+    game.bestStreak = Math.max(game.bestStreak || 0, summary.bestStreak || 0);
+    game.lastAt = new Date().toISOString();
+    save();
+    return {
+      isBest: isBest,
+      highScore: game.highScore,
+      bestStreak: game.bestStreak
+    };
   }
 
   function currentCard() {
@@ -130,7 +208,8 @@
 
   // ---- session lifecycle -------------------------------------------------
 
-  function startSession(idsOverride) {
+  function startSession(idsOverride, opts) {
+    var silent = !!(opts && opts.silent);
     var queue;
     if (idsOverride) {
       queue = { ids: idsOverride.slice(), notice: "" };
@@ -141,11 +220,13 @@
     if (!queue.ids.length) {
       state.session = null;
       save();
-      UI.setProgress(0, 0);
-      UI.renderEmpty(
-        "No cards match",
-        queue.notice || "Change the paper or question-type filters in settings, then try again."
-      );
+      if (!silent) {
+        UI.setProgress(0, 0);
+        UI.renderEmpty(
+          "No cards match",
+          queue.notice || "Change the paper or question-type filters in settings, then try again."
+        );
+      }
       return;
     }
 
@@ -160,8 +241,10 @@
       pending: null
     };
     save();
-    renderCurrent();
-    if (queue.notice) toast(queue.notice);
+    if (!silent) {
+      renderCurrent();
+      if (queue.notice) toast(queue.notice);
+    }
   }
 
   function renderCurrent() {
@@ -321,17 +404,34 @@
   // ---- settings ----------------------------------------------------------
 
   function openSettings() {
+    SynonymUI.pause();
     UI.renderSettings(state.settings, papers, types);
     openDialog(els.settingsDialog);
   }
 
+  function sessionSettingsChanged(previous, next) {
+    return previous.mode !== next.mode ||
+      previous.limit !== next.limit ||
+      JSON.stringify(previous.papers) !== JSON.stringify(next.papers) ||
+      JSON.stringify(previous.types) !== JSON.stringify(next.types);
+  }
+
+  function resumeGameIfReady() {
+    if (state.section === "synonyms" && !anyDialogOpen()) SynonymUI.resume();
+  }
+
   function applySettings() {
+    var previous = state.settings;
     var next = UI.readSettings();
     var session = state.session;
     var inProgress = session && !isFinished(session) &&
       (session.pending || session.results.length > 0);
+    var sessionChanged = sessionSettingsChanged(previous, next);
+    var displayChanged = previous.showMeta !== next.showMeta ||
+      previous.showHints !== next.showHints;
 
-    if (inProgress && !root.confirm("Apply these settings and start a new session?")) {
+    if (sessionChanged && inProgress &&
+        !root.confirm("Apply these settings and start a new session?")) {
       UI.renderSettings(state.settings, papers, types);
       return;
     }
@@ -339,7 +439,18 @@
     state.settings = next;
     save();
     closeDialog(els.settingsDialog);
-    startSession(null);
+    SynonymUI.refreshSettings();
+
+    if (state.section === "synonyms") {
+      if (sessionChanged) startSession(null, { silent: true });
+      resumeGameIfReady();
+    } else if (sessionChanged) {
+      startSession(null);
+    } else if (displayChanged && session && !isFinished(session)) {
+      captureParaphraseDraft();
+      renderCurrent();
+      restoreParaphraseDraft();
+    }
   }
 
   // ---- stats / data ------------------------------------------------------
@@ -374,7 +485,9 @@
         closeDialog(els.settingsDialog);
         closeDialog(els.statsDialog);
         UI.renderSettings(state.settings, papers, types);
-        resume();
+        SynonymUI.reset();
+        setSection(state.section);
+        resumeGameIfReady();
         toast("Backup imported.");
       } catch (err) {
         toast("Could not import that file.");
@@ -390,10 +503,11 @@
     if (!root.confirm("Reset all progress and settings? This cannot be undone.")) return;
     state = storage.reset();
     save();
+    SynonymUI.reset();
     UI.renderSettings(state.settings, papers, types);
     closeDialog(els.settingsDialog);
     closeDialog(els.statsDialog);
-    startSession(null);
+    setSection(state.section);
     toast("Progress reset.");
   }
 
@@ -451,6 +565,12 @@
   });
 
   document.getElementById("settingsBtn").addEventListener("click", openSettings);
+  document.getElementById("modeCards").addEventListener("click", function () {
+    setSection("paraphrase");
+  });
+  document.getElementById("modeSynonyms").addEventListener("click", function () {
+    setSection("synonyms");
+  });
   document.getElementById("settingsForm").addEventListener("submit", function (event) {
     event.preventDefault();
     applySettings();
@@ -460,7 +580,11 @@
     var close = event.target.closest("[data-close]");
     if (!close) return;
     closeDialog(close.closest("dialog"));
+    resumeGameIfReady();
   });
+
+  els.settingsDialog.addEventListener("close", resumeGameIfReady);
+  els.statsDialog.addEventListener("close", resumeGameIfReady);
 
   document.getElementById("statsBtn").addEventListener("click", openStats);
   document.getElementById("summaryStats").addEventListener("click", openStats);
@@ -493,6 +617,15 @@
 
   document.addEventListener("keydown", function (event) {
     if (anyDialogOpen()) return;
+
+    if (state.section === "synonyms") {
+      if (SynonymUI.handleKey(event)) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        openSettings();
+      }
+      return;
+    }
 
     var tag = (event.target.tagName || "").toLowerCase();
     var inField = tag === "textarea" || tag === "input" || tag === "select";
@@ -531,6 +664,24 @@
 
   // ---- boot --------------------------------------------------------------
 
-  UI.updateStatus(state);
-  resume();
+  SynonymUI.init({
+    index: synonymIndex,
+    getRoundSeconds: function () {
+      return state.settings.synonymSeconds;
+    },
+    getRecords: function () {
+      return state.synonymGame;
+    },
+    onRoundEnd: recordSynonymRound,
+    onRequestSection: setSection,
+    toast: toast
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (state.section !== "synonyms") return;
+    if (document.hidden) SynonymUI.pause();
+    else resumeGameIfReady();
+  });
+
+  setSection(state.section);
 })(window);

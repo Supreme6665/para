@@ -8,10 +8,12 @@ const path = require("node:path");
 const ROOT = path.join(__dirname, "..");
 const cardsJson = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "cards.json"), "utf8"));
 const synonymsJson = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "synonyms.json"), "utf8"));
+const gameJson = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "synonym-game.json"), "utf8"));
 
 global.window = {};
 require(path.join(ROOT, "js", "synonyms.js"));
 require(path.join(ROOT, "js", "data.js"));
+require(path.join(ROOT, "js", "synonym-game.js"));
 const { createMatcher } = require(path.join(ROOT, "js", "matcher.js"));
 
 const matcher = createMatcher({ synonymGroups: synonymsJson.groups });
@@ -126,6 +128,7 @@ test("accept phrases do not accidentally trigger their own forbid list", () => {
 test("generated browser data is in sync with the JSON sources", () => {
   assert.deepEqual(window.PERIDOT_DATA.cards, cards);
   assert.deepEqual(window.PERIDOT_SYNONYMS.groups, synonymsJson.groups);
+  assert.deepEqual(window.PERIDOT_SYNONYM_GAME, gameJson);
 });
 
 test("synonym groups are well formed", () => {

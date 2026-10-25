@@ -56,3 +56,51 @@ test("new progress is written to peridot.v1", () => {
   assert.equal(written.progress["acjc-p1-q1"].attempts, 1);
   assert.equal(store.getItem("para.v1"), null);
 });
+
+test("defaults include the section and synonym game records", () => {
+  const storage = loadWith(fakeStorage());
+  const state = storage.load();
+
+  assert.equal(state.section, "paraphrase");
+  assert.equal(state.settings.synonymSeconds, 60);
+  assert.deepEqual(state.synonymGame, {
+    highScore: 0,
+    bestStreak: 0,
+    rounds: 0,
+    lastScore: 0,
+    lastAt: null
+  });
+});
+
+test("older saved state is merged with new defaults", () => {
+  const saved = JSON.stringify({
+    version: 1,
+    settings: { mode: "weak", limit: 10 },
+    progress: { "acjc-p1-q1": { attempts: 1, correct: 0 } },
+    stats: { attempts: 1, correct: 0 }
+  });
+  const storage = loadWith(fakeStorage({ "peridot.v1": saved }));
+  const state = storage.load();
+
+  assert.equal(state.settings.mode, "weak");
+  assert.equal(state.settings.limit, 10);
+  assert.equal(state.settings.synonymSeconds, 60);
+  assert.equal(state.section, "paraphrase");
+  assert.equal(state.synonymGame.highScore, 0);
+  assert.equal(state.progress["acjc-p1-q1"].attempts, 1);
+});
+
+test("imported backups keep game records and restore defaults for missing fields", () => {
+  const storage = loadWith(fakeStorage());
+  const state = storage.importJSON(JSON.stringify({
+    version: 1,
+    progress: {},
+    section: "synonyms",
+    synonymGame: { highScore: 84, bestStreak: 6, rounds: 3, lastScore: 42 }
+  }));
+
+  assert.equal(state.section, "synonyms");
+  assert.equal(state.synonymGame.highScore, 84);
+  assert.equal(state.synonymGame.lastAt, null);
+  assert.equal(state.settings.synonymSeconds, 60);
+});

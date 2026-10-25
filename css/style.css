@@ -76,6 +76,46 @@ body {
   color: var(--muted);
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.mode-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #2b2b2b;
+  border-radius: 999px;
+  background: #0b0b0b;
+}
+
+.mode-tab {
+  padding: 4px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--faint);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mode-tab:hover {
+  border: 0;
+  background: #191919;
+  color: var(--text);
+}
+
+.mode-tab.is-active {
+  background: #272727;
+  color: #f1f1f1;
+  box-shadow: inset 0 0 0 1px #3b3b3b;
+}
+
 .progress-wrap {
   display: flex;
   align-items: center;
@@ -810,6 +850,346 @@ select {
   line-height: 1.6;
 }
 
+/* ---------- synonym rush ---------- */
+
+.synonym-view {
+  width: min(720px, 100%);
+}
+
+.game-intro,
+.game-play,
+.game-paused,
+.game-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.game-intro h1 {
+  margin: 0;
+  max-width: 16ch;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.06;
+}
+
+.game-rules {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.game-rules > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 11px 12px;
+  border: 1px solid #262626;
+  border-radius: 10px;
+  background: #0c0c0c;
+}
+
+.game-rules b {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.game-rules span {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.game-hud {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.game-timer {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 1px solid #2c2c2c;
+  border-radius: 10px;
+  background: #0d0d0d;
+}
+
+.game-timer-text {
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.timer-track {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #212121;
+}
+
+.timer-bar {
+  width: 100%;
+  height: 100%;
+  background: #cfcfcf;
+  transition: width 0.2s linear;
+}
+
+.game-timer.is-low .game-timer-text {
+  color: var(--bad);
+}
+
+.game-timer.is-low .timer-bar {
+  background: var(--bad);
+}
+
+.game-stat {
+  min-width: 74px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 8px 12px;
+  border: 1px solid #262626;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.game-stat b {
+  font-size: 1.3rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-stat span {
+  color: var(--faint);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.prompt-block {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 6px;
+}
+
+.prompt-word {
+  margin: 0;
+  font-size: clamp(2.6rem, 6vw, 4rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+  overflow-wrap: anywhere;
+}
+
+.prompt-source {
+  margin: 0;
+  color: var(--faint);
+  font-size: 0.76rem;
+  letter-spacing: 0.03em;
+}
+
+.synonym-form {
+  padding-bottom: 12px;
+}
+
+.synonym-input {
+  display: block;
+  width: 100%;
+  padding: 4px 2px 10px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.3rem;
+  line-height: 1.4;
+}
+
+.synonym-input::placeholder {
+  color: #767676;
+}
+
+.synonym-feedback {
+  text-align: left;
+}
+
+.synonym-feedback.is-good {
+  color: var(--hit);
+}
+
+.synonym-feedback.is-bad {
+  color: var(--bad);
+}
+
+.synonym-feedback.is-muted {
+  color: var(--muted);
+}
+
+.synonym-found {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+
+.synonym-empty {
+  color: var(--faint);
+  font-size: 0.8rem;
+}
+
+.synonym-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  animation: rise 0.18s ease both;
+}
+
+.synonym-chip.tier-strong {
+  color: #bce3c9;
+  border-color: #3d5a47;
+  background: rgba(80, 140, 105, 0.12);
+}
+
+.synonym-chip.tier-close {
+  color: #e5c989;
+  border-color: #5a4c30;
+  background: rgba(150, 120, 60, 0.12);
+}
+
+.synonym-chip.tier-loose {
+  color: #c2c2c2;
+  border-color: #424242;
+  background: rgba(120, 120, 120, 0.1);
+}
+
+.synonym-chip-points {
+  color: var(--faint);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.game-paused {
+  padding: 28px;
+  border: 1px solid #2c2c2c;
+  border-radius: 14px;
+  background: #0c0c0c;
+}
+
+.game-paused h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.game-paused button {
+  width: fit-content;
+}
+
+.game-summary h1 {
+  font-size: clamp(2.8rem, 7vw, 4.6rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-summary .stats-grid {
+  margin-top: 2px;
+}
+
+.synonym-review {
+  display: flex;
+  flex-direction: column;
+  max-height: 42vh;
+  overflow: auto;
+  border-top: 1px solid #1e1e1e;
+}
+
+.synonym-review h3 {
+  margin: 12px 0 2px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.review-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.review-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.review-head b {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.review-source {
+  color: var(--faint);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.review-example {
+  margin: 0;
+  color: #a8a8a8;
+  font-size: 0.82rem;
+  font-style: italic;
+  line-height: 1.55;
+}
+
+.review-line {
+  margin: 0;
+  color: #bdbdbd;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.review-label {
+  color: var(--faint);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.review-none {
+  color: var(--faint);
+}
+
+.review-missed {
+  color: #dcc38d;
+}
+
 /* ---------- footer ---------- */
 
 .statusbar {
@@ -873,6 +1253,50 @@ select {
     font-size: 0.62rem;
   }
 
+  .topbar-left {
+    gap: 9px;
+  }
+
+  .mode-switch {
+    padding: 2px;
+  }
+
+  .mode-tab {
+    padding: 4px 8px;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+
+  .game-hud {
+    flex-wrap: wrap;
+  }
+
+  .game-timer {
+    flex-basis: 100%;
+  }
+
+  .game-stat {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 8px;
+  }
+
+  .game-rules {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prompt-word {
+    font-size: 2.4rem;
+  }
+
+  .game-paused {
+    padding: 20px;
+  }
+
+  .synonym-review {
+    max-height: none;
+  }
+
   .progress-wrap {
     width: auto;
     justify-self: end;
@@ -921,6 +1345,12 @@ select {
   .statusbar {
     padding: 0 16px 14px;
     font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand {
+    display: none;
   }
 }
 

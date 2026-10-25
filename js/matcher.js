@@ -532,6 +532,8 @@
     createMatcher: createMatcher,
     normalize: normalize,
     tokenize: tokenize,
-    stem: stem
+    stem: stem,
+    stopwords: STOP,
+    editDistance: damerau
   };
 });

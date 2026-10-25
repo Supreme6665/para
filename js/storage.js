@@ -7,13 +7,15 @@
 
   var DEFAULTS = {
     version: 1,
+    section: "paraphrase",
     settings: {
       mode: "practice",
       papers: [],
       types: [],
       limit: 20,
       showMeta: true,
-      showHints: true
+      showHints: true,
+      synonymSeconds: 60
     },
     progress: {},
     stats: {
@@ -24,7 +26,14 @@
       startedAt: null
     },
     session: null,
-    corrections: []
+    corrections: [],
+    synonymGame: {
+      highScore: 0,
+      bestStreak: 0,
+      rounds: 0,
+      lastScore: 0,
+      lastAt: null
+    }
   };
 
   var memory = null;

@@ -2,11 +2,12 @@
 """Build browser-ready data files from the curated JSON.
 
 Writes:
-  js/data.js      -> window.PERIDOT_DATA
-  js/synonyms.js  -> window.PERIDOT_SYNONYMS
+  js/data.js          -> window.PERIDOT_DATA
+  js/synonyms.js      -> window.PERIDOT_SYNONYMS
+  js/synonym-game.js  -> window.PERIDOT_SYNONYM_GAME
 
 The app uses classic <script> tags so it works from file:// without a
-server. Run after editing data/cards.json.
+server. Run after editing anything in data/.
 """
 from __future__ import annotations
 
@@ -26,6 +27,7 @@ def dump_js(var: str, payload: dict) -> str:
 def main() -> None:
     cards = json.loads((DATA / "cards.json").read_text(encoding="utf-8"))
     synonyms = json.loads((DATA / "synonyms.json").read_text(encoding="utf-8"))
+    game = json.loads((DATA / "synonym-game.json").read_text(encoding="utf-8"))
 
     cards["builtAt"] = date.today().isoformat()
     papers = []
@@ -39,9 +41,11 @@ def main() -> None:
 
     (ROOT / "js" / "data.js").write_text(dump_js("PERIDOT_DATA", cards), encoding="utf-8")
     (ROOT / "js" / "synonyms.js").write_text(dump_js("PERIDOT_SYNONYMS", synonyms), encoding="utf-8")
+    (ROOT / "js" / "synonym-game.js").write_text(dump_js("PERIDOT_SYNONYM_GAME", game), encoding="utf-8")
 
     print(f"Built js/data.js with {cards['count']} cards across {len(papers)} papers.")
     print(f"Built js/synonyms.js with {len(synonyms['groups'])} synonym groups.")
+    print(f"Built js/synonym-game.js with a {game['roundSeconds']}-second round.")
 
 
 if __name__ == "__main__":

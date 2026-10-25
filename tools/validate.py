@@ -13,6 +13,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CARDS = ROOT / "data" / "cards.json"
+SYNONYM_GAME = ROOT / "data" / "synonym-game.json"
+
+TIERS = ("strong", "close", "loose")
 
 TYPES = {"vocab", "literal", "figurative", "language", "term"}
 ORIGINS = {"exam", "adapted", "created"}
@@ -40,6 +43,71 @@ def fail(errors: list[str], msg: str) -> None:
     errors.append(msg)
 
 
+def validate_synonym_game(errors: list[str], warnings: list[str]) -> None:
+    try:
+        game = json.loads(SYNONYM_GAME.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        fail(errors, f"synonym-game.json: could not read ({exc})")
+        return
+
+    if game.get("schemaVersion") != 1:
+        fail(errors, "synonym-game.json: schemaVersion should be 1")
+
+    seconds = game.get("roundSeconds")
+    if not isinstance(seconds, int) or not 10 <= seconds <= 300:
+        fail(errors, "synonym-game.json: roundSeconds should be an integer from 10 to 300")
+
+    minimum = game.get("minSynonyms")
+    if not isinstance(minimum, int) or minimum < 1:
+        fail(errors, "synonym-game.json: minSynonyms should be a positive integer")
+
+    blocklist = game.get("blocklist", [])
+    if not isinstance(blocklist, list):
+        fail(errors, "synonym-game.json: blocklist should be a list")
+        blocklist = []
+    seen_blocked: set[str] = set()
+    for word in blocklist:
+        if not isinstance(word, str) or not re.fullmatch(r"[a-z]+", word):
+            fail(errors, f"synonym-game.json: blocklist entry {word!r} should be a lowercase word")
+            continue
+        if word in seen_blocked:
+            fail(errors, f"synonym-game.json: duplicate blocklist entry {word!r}")
+        seen_blocked.add(word)
+
+    overrides = game.get("overrides", {})
+    if not isinstance(overrides, dict):
+        fail(errors, "synonym-game.json: overrides should be an object")
+        return
+    for word, tiers in overrides.items():
+        if not isinstance(word, str) or not re.fullmatch(r"[a-z]+", word):
+            fail(errors, f"synonym-game.json: override key {word!r} should be a lowercase word")
+            continue
+        if not isinstance(tiers, dict):
+            fail(errors, f"synonym-game.json: override for {word!r} should be an object")
+            continue
+        unknown = set(tiers) - set(TIERS) - {"reject"}
+        if unknown:
+            fail(errors, f"synonym-game.json: override for {word!r} has unknown tiers {sorted(unknown)}")
+        assigned: dict[str, str] = {}
+        for tier in (*TIERS, "reject"):
+            terms = tiers.get(tier, [])
+            if not isinstance(terms, list):
+                fail(errors, f"synonym-game.json: {word}.{tier} should be a list")
+                continue
+            for term in terms:
+                if not isinstance(term, str) or not term.strip():
+                    fail(errors, f"synonym-game.json: {word}.{tier} has an empty term")
+                    continue
+                key = term.strip().lower()
+                if key == word:
+                    fail(errors, f"synonym-game.json: {word}.{tier} contains the prompt itself")
+                if key in assigned:
+                    warnings.append(
+                        f"synonym-game.json: {word!r} term {key!r} is both {assigned[key]} and {tier}"
+                    )
+                assigned[key] = tier
+
+
 def main() -> int:
     data = json.loads(CARDS.read_text(encoding="utf-8"))
     cards = data.get("cards", [])
@@ -48,6 +116,8 @@ def main() -> int:
 
     if not cards:
         fail(errors, "dataset has no cards")
+
+    validate_synonym_game(errors, warnings)
 
     seen: set[str] = set()
     for card in cards:
