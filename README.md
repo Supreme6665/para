@@ -182,11 +182,13 @@ Open the printed localhost address. On desktops, `run.sh` tries to open it with
 
 ## Push updates to the private GitHub repository
 
-This copy is published at:
+This copy is published in the private repository:
 
 ```text
-git@github.com:Supreme6665/para.git
+https://github.com/Supreme6665/para
 ```
+
+The local `origin` remote uses SSH: `git@github.com:Supreme6665/para.git`.
 
 After editing, commit and push:
 
